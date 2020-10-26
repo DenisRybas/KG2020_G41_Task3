@@ -1,4 +1,4 @@
-package rybas.points;
+package rybas.models.points;
 
 public class ScreenPoint {
     private final int x, y;

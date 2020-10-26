@@ -1,4 +1,4 @@
-package rybas.pixeldrawers;
+package rybas.models.pixeldrawers;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

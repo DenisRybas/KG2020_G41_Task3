@@ -1,9 +1,11 @@
 package rybas;
 
+import rybas.gui.MainWindow;
+
 import javax.swing.*;
 import java.awt.*;
 
-public class Lesson3 {
+public class Main {
     public static void main(String[] args) {
         var mw = new MainWindow();
         mw.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

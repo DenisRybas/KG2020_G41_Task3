@@ -1,7 +1,7 @@
 package rybas.linedrawers;
 
-import rybas.pixeldrawers.PixelDrawer;
-import rybas.points.ScreenPoint;
+import rybas.models.pixeldrawers.PixelDrawer;
+import rybas.models.points.ScreenPoint;
 
 import java.awt.*;
 

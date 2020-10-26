@@ -1,7 +1,7 @@
-package rybas;
+package rybas.controller;
 
-import rybas.points.RealPoint;
-import rybas.points.ScreenPoint;
+import rybas.models.points.RealPoint;
+import rybas.models.points.ScreenPoint;
 
 public class ScreenConvertor {
     private double x, y, w, h;
@@ -68,5 +68,11 @@ public class ScreenConvertor {
         int px = (int) ((p.getX() - x) * screenW / w);
         int py = (int) ((y - p.getY()) * screenH / h);
         return new ScreenPoint(px, py);
+    }
+
+    public RealPoint screenToReal(ScreenPoint p) {
+        double px = p.getX() * w / screenW + x;
+        double py = y - p.getY() * h / screenH;
+        return new RealPoint(px, py);
     }
 }
