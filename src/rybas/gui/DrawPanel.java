@@ -25,6 +25,7 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
     private Line xAxis = new Line(-sc.getScreenW(), 0, sc.getScreenW(), 0);
     private Line yAxis = new Line(0, -sc.getScreenH(), 0, sc.getScreenH());
     private LineDrawer ld;
+    private String equation = "sin(x)";
 
     public DrawPanel() {
         this.addMouseMotionListener(this);
@@ -49,8 +50,6 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
     }
 
     private void drawAll(LineDrawer ld) {
-
-
         for (Line l :
                 lines) {
             ld.drawLine(sc.realToScreen(l.getP1()), sc.realToScreen(l.getP2()));
@@ -59,12 +58,13 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
             ld.drawLine(sc.realToScreen(currentLine.getP1()), sc.realToScreen(currentLine.getP2()));
 
         drawAxes(ld);
-        drawFunc("10 * sin(x)");
+        drawFunc(equation);
     }
 
     public void drawFunc(String equation) {
+        this.equation = equation;
         RealPoint p1 = null, p2;
-        for (double i = -sc.getScreenW(); i < sc.getScreenW(); i+=10) {
+        for (double i = -sc.getScreenW(); i < sc.getScreenW(); i++) {
             BigDecimal result = new Expression(equation).with("x", BigDecimal.valueOf(i)).eval();
             if (i == -sc.getScreenW()) p1 = new RealPoint(i, result.doubleValue());
             p2 = new RealPoint(i, result.doubleValue());
