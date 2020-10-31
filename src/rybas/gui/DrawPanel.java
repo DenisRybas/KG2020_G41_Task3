@@ -66,18 +66,10 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
     public void drawFunc(String equation, LinkedHashMap<String, Double> parameters) {
         this.equation = equation;
         this.parameters = parameters;
-//        RealPoint p1 = null, p2;
-//        for (double i = -sc.getScreenW(); i < sc.getScreenW(); i++) {
-//            BigDecimal result = new Expression(equation).with("x", BigDecimal.valueOf(i)).eval();
-//            if (i == -sc.getScreenW()) p1 = new RealPoint(i, result.doubleValue());
-//            p2 = new RealPoint(i, result.doubleValue());
-//            ld.drawLine(sc.realToScreen(p1), sc.realToScreen(p2));
-//            p1 = p2;
-//        }
+
         double step = 0.1;
         for (double x1 = -sc.getScreenW() / 5.0; x1 < sc.getScreenW() / 5.0; x1 += step) {
             double x2 = x1 + step;
-
             try {
                 BigDecimal result1 = new Expression(equation).with("x", BigDecimal.valueOf(x1)).eval();
                 BigDecimal result2 = new Expression(equation).with("x", BigDecimal.valueOf(x2)).eval();
