@@ -89,20 +89,20 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         double step = sc.getW() / 10;
         for (double i = step; i <= sc.getW() + Math.abs(sc.getX()); i += step) {
             ScreenPoint p1 = sc.realToScreen(new RealPoint(i, sc.getH() + sc.getY()));
-            ScreenPoint p2 = sc.realToScreen(new RealPoint(i, -(sc.getH() + sc.getY())));
+            ScreenPoint p2 = sc.realToScreen(new RealPoint(i, -(sc.getH() - sc.getY())));
             ld.drawLine(p1, p2);
             p1 = sc.realToScreen(new RealPoint(-i, sc.getH() + sc.getY()));
-            p2 = sc.realToScreen(new RealPoint(-i, -(sc.getH() +sc.getY())));
+            p2 = sc.realToScreen(new RealPoint(-i, -(sc.getH() - sc.getY())));
             ld.drawLine(p1, p2);
         }
 
         step = sc.getH() / 10;
         for (double i = step; i <= sc.getH() + Math.abs(sc.getY()); i += step) {
             ScreenPoint p1 = sc.realToScreen(new RealPoint(sc.getW() + sc.getX(), i));
-            ScreenPoint p2 = sc.realToScreen(new RealPoint(-(sc.getW() + sc.getX()), i));
+            ScreenPoint p2 = sc.realToScreen(new RealPoint(-(sc.getW() - sc.getX()), i));
             ld.drawLine(p1, p2);
             p1 = sc.realToScreen(new RealPoint(sc.getW() + sc.getX(), -i));
-            p2 = sc.realToScreen(new RealPoint(-(sc.getW() + sc.getX()), -i));
+            p2 = sc.realToScreen(new RealPoint(-(sc.getW() - sc.getX()), -i));
             ld.drawLine(p1, p2);
         }
         ld.setColor(Color.BLACK);
