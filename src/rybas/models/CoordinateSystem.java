@@ -77,8 +77,8 @@ public class CoordinateSystem {
             ScreenPoint point = sc.realToScreen(new RealPoint(0, y));
             ScreenPoint oppositePoint = sc.realToScreen(new RealPoint(0, -y));
             String value = String.valueOf(unitStep);
-            if (y > 10000000) value = String.format("%2.1e", unitStep);
-            else if (y < 0.00005) value = String.format("%2.2e", unitStep);
+            if (unitStep > 10000000) value = String.format("%2.1e", unitStep);
+            else if (unitStep < 0.00005) value = String.format("%2.2e", unitStep);
             if (y == 0.0) value = "0";
             g.drawString(value, point.getX(), point.getY());
             g.drawString(value, oppositePoint.getX(), oppositePoint.getY());
@@ -87,7 +87,7 @@ public class CoordinateSystem {
     }
 
     public void recountStep(RecountType type) {
-        double newStep = 0;
+        double newStep;
         if (type == RecountType.DECREASE) {
             if (this.step >= 1)
                 for (int i = 0; ; i++) {
@@ -112,16 +112,28 @@ public class CoordinateSystem {
                     }
                 }
         } else {
-            for (int i = 0; ; i++) {
-                for (int j = 0; j <= i + 1; j++) {
-                    newStep = Math.pow(5, i);
-                    newStep *= Math.pow(2, j);
-                    if (newStep > this.step) {
-                        this.step = newStep;
-                        return;
+            if (this.step >= 1)
+                for (int i = 0; ; i++) {
+                    for (int j = 0; j <= i + 1; j++) {
+                        newStep = Math.pow(5, i);
+                        newStep *= Math.pow(2, j);
+                        if (newStep > this.step) {
+                            this.step = newStep;
+                            return;
+                        }
                     }
                 }
-            }
+            if (this.step < 1)
+                for (int i = 0; ; i--) {
+                    for (int j = 0; j >= i - 1; j--) {
+                        newStep = Math.pow(5, i);
+                        newStep *= Math.pow(2, j);
+                        if (newStep / 2 < this.step) {
+                            this.step = newStep * 2;
+                            return;
+                        }
+                    }
+                }
         }
     }
 
