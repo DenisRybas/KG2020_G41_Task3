@@ -2,9 +2,12 @@ package rybas.gui;
 
 import com.udojava.evalex.Expression;
 import rybas.controller.ScreenConvertor;
-import rybas.linedrawers.DDALineDrawer;
-import rybas.linedrawers.LineDrawer;
+import rybas.models.CoordinateSystem;
 import rybas.models.Line;
+import rybas.models.RecountType;
+import rybas.models.functions.CustomFunction;
+import rybas.models.functions.IFunction;
+import rybas.models.linedrawers.DDALineDrawer;
 import rybas.models.pixeldrawers.BufferedImagePixelDrawer;
 import rybas.models.pixeldrawers.PixelDrawer;
 import rybas.models.points.RealPoint;
@@ -15,22 +18,28 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class DrawPanel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
     private ArrayList<Line> lines = new ArrayList<>();
     private ScreenConvertor sc = new ScreenConvertor(
-            -5, 5, 10, 10, 800, 800
+            -25, 25, 50, 50, 1920, 1080
     );
-    private Line xAxis = new Line(-sc.getScreenW(), 0, sc.getScreenW(), 0);
-    private Line yAxis = new Line(0, -sc.getScreenH(), 0, sc.getScreenH());
+
     private DDALineDrawer ld;
-    private String equation = "0";
+    private IFunction function;
     private LinkedHashMap<String, Double> parameters = new LinkedHashMap<>();
+    private CoordinateSystem coordinateSystem;
+
+    public void setFunction(IFunction function) {
+        this.function = function;
+        repaint();
+    }
 
     public DrawPanel() {
+        coordinateSystem = new CoordinateSystem(sc);
+        function = new CustomFunction("0", null);
         this.addMouseMotionListener(this);
         this.addMouseListener(this);
         this.addMouseWheelListener(this);
@@ -42,115 +51,33 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         Graphics2D bi_g = bi.createGraphics();
         PixelDrawer pd = new BufferedImagePixelDrawer(bi);
         ld = new DDALineDrawer(pd);
-        sc.setScreenH(getHeight());
         sc.setScreenW(getWidth());
+        sc.setScreenH(getHeight());
         bi_g.fillRect(0, 0, getWidth(), getHeight());
         bi_g.setColor(Color.black);
-        drawUnitSegments(bi_g);
-        drawAll(ld);
+        coordinateSystem.setSc(sc);
+        coordinateSystem.drawUnitSegments(bi_g);
+        coordinateSystem.drawAxes(ld);
+        coordinateSystem.drawGrid(ld);
+        drawFunc();
         bi_g.dispose();
         g.drawImage(bi, 0, 0, null);
     }
 
-    private void drawAll(DDALineDrawer ld) {
-        for (Line l :
-                lines) {
-            ld.drawLine(sc.realToScreen(l.getP1()), sc.realToScreen(l.getP2()));
-        }
-        if (currentLine != null)
-            ld.drawLine(sc.realToScreen(currentLine.getP1()), sc.realToScreen(currentLine.getP2()));
-
-        drawAxes(ld);
-        drawGrid(ld);
-        drawFunc(equation, parameters);
-    }
-
-    public void drawFunc(String equation, LinkedHashMap<String, Double> parameters) {
-        this.equation = equation;
-        this.parameters = parameters;
-
+    public void drawFunc() {
         double step = sc.getW() / 1000;
+        //TODO: Вынести предыдущий результат, гипербола, iFunction (x, map parameters), drawfunc(iFunc, sc, ld), делать repaint, когда что-то меняем, параметры в табилце
         for (double x1 = -sc.getW() + sc.getX(); x1 < sc.getW() + sc.getX(); x1 += step) {
             double x2 = x1 + step;
             try {
-                BigDecimal result1 = new Expression(equation).with("x", BigDecimal.valueOf(x1)).eval();
-                BigDecimal result2 = new Expression(equation).with("x", BigDecimal.valueOf(x2)).eval();
+                BigDecimal result1 = function.evaluate(BigDecimal.valueOf(x1));
+                BigDecimal result2 = function.evaluate(BigDecimal.valueOf(x2));
+
                 ScreenPoint p1 = sc.realToScreen(new RealPoint(x1, result1.doubleValue()));
                 ScreenPoint p2 = sc.realToScreen(new RealPoint(x2, result2.doubleValue()));
                 ld.drawLine(p1, p2);
             } catch (Expression.ExpressionException | NumberFormatException ignored) {
             }
-        }
-        repaint();
-    }
-
-    private void drawGrid(DDALineDrawer ld) {
-        ld.setColor(new Color(178, 178, 178));
-        double step = sc.getW() / 10;
-        for (double i = step; i <= sc.getW() + Math.abs(sc.getX()); i += step) {
-            ScreenPoint p1 = sc.realToScreen(new RealPoint(i, sc.getH() + sc.getY()));
-            ScreenPoint p2 = sc.realToScreen(new RealPoint(i, -(sc.getH() - sc.getY())));
-            ld.drawLine(p1, p2);
-            p1 = sc.realToScreen(new RealPoint(-i, sc.getH() + sc.getY()));
-            p2 = sc.realToScreen(new RealPoint(-i, -(sc.getH() - sc.getY())));
-            ld.drawLine(p1, p2);
-        }
-
-        step = sc.getH() / 10;
-        for (double i = step; i <= sc.getH() + Math.abs(sc.getY()); i += step) {
-            ScreenPoint p1 = sc.realToScreen(new RealPoint(sc.getW() + sc.getX(), i));
-            ScreenPoint p2 = sc.realToScreen(new RealPoint(-(sc.getW() - sc.getX()), i));
-            ld.drawLine(p1, p2);
-            p1 = sc.realToScreen(new RealPoint(sc.getW() + sc.getX(), -i));
-            p2 = sc.realToScreen(new RealPoint(-(sc.getW() - sc.getX()), -i));
-            ld.drawLine(p1, p2);
-        }
-        ld.setColor(Color.BLACK);
-    }
-
-    private void drawUnitSegments(Graphics g) {
-        g.setColor(Color.BLACK);
-        double step = sc.getW() / 10;
-
-        for (double x = 0; x <= sc.getW() + Math.abs(sc.getX()); x += step) {
-            ScreenPoint point = sc.realToScreen(new RealPoint(x, 0));
-            ScreenPoint oppositePoint = sc.realToScreen(new RealPoint(-x, 0));
-            if (step >= 1) {
-                g.drawString(String.valueOf((int) x), point.getX(), point.getY());
-                g.drawString(String.valueOf((int) -x), oppositePoint.getX(), oppositePoint.getY());
-            } else {
-                String pattern = "#.#####";
-                DecimalFormat f = new DecimalFormat(pattern);
-                String value = f.format(x).equals("0") ? "0.00001" : f.format(x);
-                g.drawString(value, point.getX(), point.getY());
-                g.drawString(value, oppositePoint.getX(), oppositePoint.getY());
-            }
-        }
-
-        step = sc.getH() / 10;
-        for (double y = 0; y <= sc.getH() + Math.abs(sc.getY()); y += step) {
-            ScreenPoint point = sc.realToScreen(new RealPoint(0, y));
-            ScreenPoint oppositePoint = sc.realToScreen(new RealPoint(0, -y));
-            if (step >= 1) {
-                g.drawString(String.valueOf((int) y), point.getX(), point.getY());
-                g.drawString(String.valueOf((int) -y), oppositePoint.getX(), oppositePoint.getY());
-            } else {
-                String pattern = "#.#####";
-                DecimalFormat f = new DecimalFormat(pattern);
-                String value = f.format(y).equals("0") ? "0.00001" : f.format(y);
-                g.drawString(value, point.getX(), point.getY());
-                g.drawString(value, oppositePoint.getX(), oppositePoint.getY());
-            }
-        }
-    }
-
-    private void drawAxes(LineDrawer ld) {
-        ld.drawLine(sc.realToScreen(xAxis.getP1()), sc.realToScreen(xAxis.getP2()));
-        ld.drawLine(sc.realToScreen(yAxis.getP1()), sc.realToScreen(yAxis.getP2()));
-
-        for (Line l : lines) {
-            ld.drawLine(sc.realToScreen(l.getP1()),
-                    sc.realToScreen(l.getP2()));
         }
     }
 
@@ -176,8 +103,8 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
             RealPoint vector = new RealPoint(deltaToReal.getX() - zeroToReal.getX(), deltaToReal.getY() - zeroToReal.getY());
             sc.setX(sc.getX() - vector.getX());
             sc.setY(sc.getY() - vector.getY());
-            xAxis = new Line(-sc.getW() + sc.getX(), 0, sc.getW() + sc.getX(), 0);
-            yAxis = new Line(0, -sc.getH() + sc.getY(), 0, sc.getH() + sc.getY());
+            coordinateSystem.setXAxis(new Line(-sc.getW() + sc.getX(), 0, sc.getW() + sc.getX(), 0));
+            coordinateSystem.setYAxis(new Line(0, -sc.getH() + sc.getY(), 0, sc.getH() + sc.getY()));
             prevDrag = current;
         }
         repaint();
@@ -223,12 +150,16 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         for (int i = 0; i <= Math.abs(ticks); i++) {
             scale *= cf;
         }
+        if (scale > 1)
+            coordinateSystem.recountStep(RecountType.INCREASE);
+        else
+            coordinateSystem.recountStep(RecountType.DECREASE);
         sc.setW(sc.getW() * scale);
         sc.setH(sc.getH() * scale);
         sc.setX(sc.getX() * scale);
         sc.setY(sc.getY() * scale);
-        xAxis = new Line(-sc.getW() + sc.getX(), 0, sc.getW() + sc.getX(), 0);
-        yAxis = new Line(0, -sc.getH() + sc.getY(), 0, sc.getH() + sc.getY());
+        coordinateSystem.setXAxis(new Line(-sc.getW() + sc.getX(), 0, sc.getW() + sc.getX(), 0));
+        coordinateSystem.setYAxis(new Line(0, -sc.getH() + sc.getY(), 0, sc.getH() + sc.getY()));
         repaint();
     }
 }

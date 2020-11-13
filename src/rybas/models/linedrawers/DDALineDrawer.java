@@ -1,4 +1,4 @@
-package rybas.linedrawers;
+package rybas.models.linedrawers;
 
 import rybas.models.pixeldrawers.PixelDrawer;
 import rybas.models.points.ScreenPoint;

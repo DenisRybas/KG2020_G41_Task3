@@ -1,70 +1,81 @@
 package rybas.gui;
 
 import rybas.controller.Utils;
+import rybas.models.functions.CustomFunction;
 
 import javax.swing.*;
-import java.awt.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.LinkedHashMap;
 
-public class MainWindow extends JFrame implements KeyListener {
+public class MainWindow extends JFrame {
     private JPanel mainPanel;
     private JPanel panel4Draw;
-    private JSpinner nOfParamsSpinner;
     private JTextField equationTextField;
     private JButton submitButton;
     private JScrollPane paramsScrollPane;
-    private JTextArea paramsTextArea;
+    private JTable parametersTable;
+    private JButton plusParamButton;
+    private JButton minusParamButton;
     private DrawPanel drawPanel;
     private LinkedHashMap<String, Double> parameters;
+    private DefaultTableModel parametersTableModel;
 
     public MainWindow() {
-        this.setFocusable(true);
-        this.addKeyListener(this);
-        drawPanel = new DrawPanel();
-        drawPanel.setMinimumSize(panel4Draw.getMinimumSize());
-        panel4Draw.setLayout(new GridLayout());
         paramsScrollPane.setLayout(new ScrollPaneLayout());
-        panel4Draw.add(drawPanel);
         parameters = new LinkedHashMap<>();
 
         this.getContentPane().add(mainPanel);
+
+        plusParamButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                parametersTableModel.addRow(new String[]{"", ""});
+            }
+        });
+
+        minusParamButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (parametersTableModel.getRowCount() != 0)
+                    parametersTableModel.removeRow(parametersTableModel.getRowCount() - 1);
+            }
+        });
 
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    parameters = Utils.parseParameters(paramsTextArea.getText());
+                    LinkedHashMap<String, Double> parameters = new LinkedHashMap<>();
+                    for (int i = 0; i < parametersTableModel.getRowCount(); i++) {
+                        if (parametersTableModel.getValueAt(i, 0) != null &&
+                                parametersTableModel.getValueAt(i, 1) != null) {
+                            String parameter = parametersTableModel.getValueAt(i, 0).toString();
+                            try {
+                                Double value = Double.parseDouble(parametersTableModel.getValueAt(i, 1).toString());
+                                parameters.put(parameter, value);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    }
                     String equation = Utils.changeParameters(equationTextField.getText(), parameters);
-                    drawPanel.drawFunc(equation, parameters);
+                    drawPanel.setFunction(new CustomFunction(equation, parameters));
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         });
-
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
-    }
+        drawPanel = new DrawPanel();
+        panel4Draw = drawPanel;
+        drawPanel.setMinimumSize(panel4Draw.getMinimumSize());
 
-    @Override
-    public void keyTyped(KeyEvent e) {
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-//        if ((e.getKeyCode() == KeyEvent.VK_ENTER) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-//            if (!equationTextField.getText().equals(""))
-//                drawPanel.drawFunc(equationTextField.getText());
-//        }
+        parametersTableModel = new DefaultTableModel(new String[][]{
+        }, new String[]{"Parameters",
+                "Values"});
+        parametersTable = new JTable(parametersTableModel);
     }
 }

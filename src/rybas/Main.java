@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
         var mw = new MainWindow();
         mw.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        mw.setSize(new Dimension(800, 600));
+        mw.setSize(new Dimension(1920, 1080));
         mw.setVisible(true);
     }
 }
