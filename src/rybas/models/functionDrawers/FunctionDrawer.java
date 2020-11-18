@@ -1,4 +1,12 @@
 package rybas.models.functionDrawers;
 
-public class FunctionDrawer {
+import rybas.controller.ScreenConvertor;
+import rybas.models.linedrawers.LineDrawer;
+
+public class FunctionDrawer implements FunctionDrawable {
+//    @Override
+    public void drawFunc(ScreenConvertor sc, LineDrawer ld) {
+
+
+    }
 }

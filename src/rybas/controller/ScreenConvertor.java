@@ -6,6 +6,15 @@ import rybas.models.points.ScreenPoint;
 public class ScreenConvertor {
     private double x, y, w, h;
     private int screenW, screenH;
+    private double scale = 1;
+
+    public void setScale(double scale) {
+        this.scale = scale;
+    }
+
+    public double getScale() {
+        return scale;
+    }
 
     public void setX(double x) {
         this.x = x;
@@ -75,4 +84,5 @@ public class ScreenConvertor {
         double py = y - p.getY() * h / screenH;
         return new RealPoint(px, py);
     }
+
 }

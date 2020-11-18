@@ -34,7 +34,7 @@ public class CoordinateSystem {
 
     public void drawGrid(DDALineDrawer ld) {
         ld.setColor(new Color(178, 178, 178));
-        float step = (float) sc.getW() / 20;
+        float step = (float) sc.getScale();
 
         for (double i = step; i <= sc.getW() + Math.abs(sc.getX()); i += step) {
             ScreenPoint p1 = sc.realToScreen(new RealPoint(i, sc.getH() + sc.getY()));
@@ -58,7 +58,7 @@ public class CoordinateSystem {
 
     public void drawUnitSegments(Graphics g) {
         g.setColor(Color.BLACK);
-        float step = (float) sc.getW() / 20;
+        float step = (float) sc.getScale();
         float unitStep = 0;
         for (float x = 0; x <= sc.getW() + Math.abs(sc.getX()); x += step) {
             ScreenPoint point = sc.realToScreen(new RealPoint(x, 0));

@@ -1,6 +1,5 @@
 package rybas.gui;
 
-import com.udojava.evalex.Expression;
 import rybas.controller.ScreenConvertor;
 import rybas.models.CoordinateSystem;
 import rybas.models.Line;
@@ -8,6 +7,7 @@ import rybas.models.RecountType;
 import rybas.models.functions.CustomFunction;
 import rybas.models.functions.IFunction;
 import rybas.models.linedrawers.DDALineDrawer;
+import rybas.models.linedrawers.LineDrawer;
 import rybas.models.pixeldrawers.BufferedImagePixelDrawer;
 import rybas.models.pixeldrawers.PixelDrawer;
 import rybas.models.points.RealPoint;
@@ -17,19 +17,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 public class DrawPanel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
     private ArrayList<Line> lines = new ArrayList<>();
     private ScreenConvertor sc = new ScreenConvertor(
-            -25, 25, 50, 50, 1920, 1080
+            -5, 5, 10, 10, 1920, 1080
     );
 
     private DDALineDrawer ld;
     private IFunction function;
-    private LinkedHashMap<String, Double> parameters = new LinkedHashMap<>();
+    //    private LinkedHashMap<String, Double> parameters = new LinkedHashMap<>();
     private CoordinateSystem coordinateSystem;
 
     public void setFunction(IFunction function) {
@@ -59,26 +57,15 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         coordinateSystem.drawUnitSegments(bi_g);
         coordinateSystem.drawAxes(ld);
         coordinateSystem.drawGrid(ld);
-        drawFunc();
+        drawFunc(sc, ld);
         bi_g.dispose();
         g.drawImage(bi, 0, 0, null);
     }
 
-    public void drawFunc() {
-        double step = sc.getW() / 1000;
+    public void drawFunc(ScreenConvertor sc, LineDrawer ld) {
         //TODO: Вынести предыдущий результат, гипербола, iFunction (x, map parameters), drawfunc(iFunc, sc, ld), делать repaint, когда что-то меняем, параметры в табилце
-        for (double x1 = -sc.getW() + sc.getX(); x1 < sc.getW() + sc.getX(); x1 += step) {
-            double x2 = x1 + step;
-            try {
-                BigDecimal result1 = function.evaluate(BigDecimal.valueOf(x1));
-                BigDecimal result2 = function.evaluate(BigDecimal.valueOf(x2));
-
-                ScreenPoint p1 = sc.realToScreen(new RealPoint(x1, result1.doubleValue()));
-                ScreenPoint p2 = sc.realToScreen(new RealPoint(x2, result2.doubleValue()));
-                ld.drawLine(p1, p2);
-            } catch (Expression.ExpressionException | NumberFormatException ignored) {
-            }
-        }
+        function.drawFunc(sc, ld);
+        //TODO: Бесконечные линии, разрывы, step drawUnitSegments
     }
 
     @Override
@@ -146,11 +133,9 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
     public void mouseWheelMoved(MouseWheelEvent e) {
         int ticks = e.getWheelRotation();
         double scale = 1;
-        double cf = ticks > 0 ? 1.1 : 0.9;
-        for (int i = 0; i <= Math.abs(ticks); i++) {
-            scale *= cf;
-        }
-        if (scale > 1)
+        double cf = ticks > 0 ? 2 : 0.5;
+        scale *= cf;
+        if (cf > 1)
             coordinateSystem.recountStep(RecountType.INCREASE);
         else
             coordinateSystem.recountStep(RecountType.DECREASE);
@@ -158,6 +143,7 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         sc.setH(sc.getH() * scale);
         sc.setX(sc.getX() * scale);
         sc.setY(sc.getY() * scale);
+        sc.setScale(sc.getScale() * scale);
         coordinateSystem.setXAxis(new Line(-sc.getW() + sc.getX(), 0, sc.getW() + sc.getX(), 0));
         coordinateSystem.setYAxis(new Line(0, -sc.getH() + sc.getY(), 0, sc.getH() + sc.getY()));
         repaint();
